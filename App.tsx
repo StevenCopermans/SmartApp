@@ -46,8 +46,9 @@ const App = () => {
 					options={{
 						headerShown: true,
 						headerStyle: {
-							backgroundColor: "#4267B2",
+							backgroundColor: "#0064B0",
 						},
+						headerTintColor: '#fff',
 					}}
 					name="NewProduct"
 					component={NewProductScreen}

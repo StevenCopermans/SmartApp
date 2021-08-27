@@ -11,11 +11,13 @@ import {
 	H3,
 	Icon,
 	H2,
+	H1,
 } from "native-base";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Col, Row, Grid } from "react-native-easy-grid";
 import * as SQLite from "expo-sqlite";
+import { readDirectoryAsync } from "expo-file-system";
 
 function openDatabase() {
 	const db = SQLite.openDatabase("db.db");
@@ -33,15 +35,15 @@ const ProductScreen = ({
 }) => {
 	const [forceUpdate, forceUpdateId] = useForceUpdate();
 
-	React.useLayoutEffect(() => {
-		navigation.setOptions({
-			headerRight: () => (
-				<TouchableOpacity onPress={() => {remove()}}>
-					<Icon name="trash-outline" />
-				</TouchableOpacity>
-			),
-		});
-	}, [navigation]);
+	// React.useLayoutEffect(() => {
+	// 	navigation.setOptions({
+	// 		headerRight: () => (
+	// 			<TouchableOpacity onPress={() => {remove()}}>
+	// 				<Icon name="trash-outline" />
+	// 			</TouchableOpacity>
+	// 		),
+	// 	});
+	// }, [navigation]);
 
 	const remove = () => {
 		db.transaction(
@@ -54,27 +56,33 @@ const ProductScreen = ({
 			forceUpdate
 		);
 
-        route.params.onGoBack(route.params.barcode);
-        navigation.goBack();
+		route.params.onGoBack(route.params.barcode);
+		navigation.goBack();
 	};
 
 	return (
-		<ScrollView style={{ flex: 1 }}>
+		<ScrollView style={{ flex: 1, backgroundColor: "#fefefe" }}>
 			<Container style={styles.container}>
-				<H2>{route.params.name}</H2>
+				<H1 style={styles.name}>{route.params.name}</H1>
 				<Thumbnail
 					source={{ uri: route.params.image }}
-					style={{ width: 300, height: 300, margin: "auto" }}
+					style={{ width: 300, height: 300, margin: "auto", borderRadius: 0 }}
 				/>
 				<H3 style={[styles.contentTitle]}>
-					Current quantity: {route.params.quantity}
+					Current quantity: {Number(route.params.quantity)}
 				</H3>
 
 				<H3 style={[styles.contentTitle]}>
-					Barcode: {route.params.barcode}
+					Barcode: {String(route.params.barcode)}
 				</H3>
+
+				<Button style={styles.delete} onPress={() => {
+					remove();
+				}}><Text style={styles.deleteText}>Delete</Text></Button>
+
+				
 			</Container>
-		</ScrollView>
+		</ScrollView >
 	);
 };
 
@@ -92,13 +100,15 @@ const styles = StyleSheet.create({
 		padding: 8,
 	},
 	contentTitle: {
-		marginTop: 16,
+		marginTop: 32,
 	},
 	container: {
-		backgroundColor: "#eee",
+		backgroundColor: "#eeeeee00",
+		padding: 32,
 		paddingTop: 32,
 		height: "100%",
 		alignItems: "center",
+		textAlign: "center"
 	},
 	test: {
 		height: 230,
@@ -110,4 +120,18 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f7f7f7",
 		padding: 8,
 	},
+	name: {
+		fontWeight: "bold",
+		marginBottom: 32
+	},
+	delete: {
+		backgroundColor: "red",
+		width: "100%",
+		marginTop: 48,
+	},
+	deleteText: {
+		width: "100%",
+		textAlign: "center"
+	},
+	
 });

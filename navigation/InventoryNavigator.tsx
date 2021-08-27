@@ -13,8 +13,9 @@ const InventoryNavigator = ({ navigation }: { navigation: any }) => {
 				options={{
 					title: "Products",
 					headerStyle: {
-						backgroundColor: "#4267B2",
+						backgroundColor: "#0064B0",
 					},
+					headerTintColor: '#fff',
 				}}
 				name="Inventory"
 				component={InventoryScreen}
@@ -23,8 +24,9 @@ const InventoryNavigator = ({ navigation }: { navigation: any }) => {
 				options={{
 					title: "Product",
 					headerStyle: {
-						backgroundColor: "#4267B2",
+						backgroundColor: "#0064B0",
 					},
+					headerTintColor: '#fff',
 				}}
 				name="Product"
 				component={ProductScreen}

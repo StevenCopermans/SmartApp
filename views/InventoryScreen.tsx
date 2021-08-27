@@ -9,7 +9,7 @@ import {
 	Button,
 	Thumbnail,
 	H3,
-	Icon,
+	Icon
 } from "native-base";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
@@ -34,16 +34,17 @@ const InventoryScreen = ({
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
 			headerRight: () => (
-				<TouchableOpacity
+				<TouchableOpacity style={{marginRight: 8}}
 					onPress={() =>
 						navigation.navigate("NewProduct", {
 							onGoBack: (data: Object) => {
+								console.log("Adding product callback");
 								if (data !== null) addProduct(data);
 							},
 						})
 					}
 				>
-					<Icon name="add-outline" />
+					<Icon name="add-outline" style={{color: "#fff"}}/>
 				</TouchableOpacity>
 			),
 		});
@@ -90,170 +91,98 @@ const InventoryScreen = ({
 			);
 		});
 
+		console.log(products);
 		console.log(products.length);
-		
+
 	}, []);
 
 	let count = 0;
 
 	const addProduct = (product: any) => {
-		console.log(product);
-		
-		const tempProducts = products;
-		tempProducts.push(product);
-		setProducts(tempProducts);
+		console.log("Adding product");
+
+		db.transaction((tx: any) => {
+			tx.executeSql(
+				`select * from products;`,
+				[],
+				(_: any, { rows: { _array } }: any) => setProducts(_array)
+			);
+		});
 	};
 
 	const removeProduct = (barcode: string) => {
-		const tempProducts: Array<Object> = products.filter(
-			(e) => e.barcode != barcode
-		);
-		setProducts(tempProducts);
+		console.log("Removing product");
+
+		db.transaction((tx: any) => {
+			tx.executeSql(
+				`select * from products;`,
+				[],
+				(_: any, { rows: { _array } }: any) => setProducts(_array)
+			);
+		});
 	};
 
 	return (
-		<ScrollView style={{ flex: 1 }}>
-			<Container style={{ height: "100%", backgroundColor: "#eee" }}>
+		<ScrollView style={{ flex: 1, backgroundColor: "#fefefe" }}>
+			<Container style={styles.container}>
 				{/* <Header /> */}
-				<Grid>
-					<Col>
-						{products === null
-							? null
-							: // @ts-ignore: Object is possibly 'null'.
-							  products.map(
-									({
-										id,
-										name,
-										quantity,
-										barcode,
-										image,
-									}) => {
-										count += 1;
+				{products.length == 0 && <H3 style={styles.noProducts}>No products yet...</H3>}
+				{
+					products.map(product => (
+						<TouchableOpacity
+							key="{product.id}"
+							onPress={() =>
+								navigation.navigate(
+									"Product",
+									{
+										id: product.id,
+										name: product.name,
+										quantity: product.quantity,
+										barcode: product.barcode,
+										image: product.image,
+										onGoBack: (barcode: string) => {
+											if (barcode !== null)
+												removeProduct(barcode);
+										},
+									}
+								)
+							}
+						>
+							<Grid style={styles.grid}>
+								<Col style={styles.gridImage}>
+									<Row>
+										<Thumbnail
+											source={{
+												uri: product.image,
+											}}
+											style={{
+												width: 100,
+												height: 100,
+												borderRadius: 0
+											}}
+										/>
+									</Row>
+								</Col>
+								<Col style={styles.gridText}>
+									<H3>{String(product.name)}</H3>
+									<Text style={styles.barcode}>{product.barcode}</Text>
+									<Text style={styles.stock}>Stock: {product.quantity}</Text>
 
-										return count % 2 == 1 ? (
-											<TouchableOpacity
-												key={barcode}
-												onPress={() =>
-													navigation.navigate(
-														"Product",
-														{
-															id: id,
-															name: name,
-															quantity: quantity,
-															barcode: barcode,
-															image: image,
-															onGoBack: (
-																barcode: string
-															) => {
-																if (
-																	barcode !==
-																	null
-																)
-																	removeProduct(
-																		barcode
-																	);
-															},
-														}
-													)
-												}
-											>
-												<Row style={styles.test}>
-													<Card
-														style={styles.product}
-													>
-														<Body>
-															<H3>{name}</H3>
-															<Thumbnail
-																source={{
-																	uri: image,
-																}}
-																style={{
-																	width: 150,
-																	height: 150,
-																}}
-															/>
-															<Text>
-																Quantity:{" "}
-																{quantity}
-															</Text>
-														</Body>
-													</Card>
-												</Row>
-											</TouchableOpacity>
-										) : null;
-									}
-							  )}
-					</Col>
-					<Col>
-						{products === null
-							? null
-							: // @ts-ignore: Object is possibly 'null'.
-							  products.map(
-									({
-										id,
-										name,
-										quantity,
-										barcode,
-										image,
-									}) => {
-										count += 1;
-										// @ts-ignore: Object is possibly 'null'.
-										if (count > products.length) count = 1;
-										return count % 2 == 0 ? (
-											<TouchableOpacity
-												key={barcode}
-												onPress={() =>
-													navigation.navigate(
-														"Product",
-														{
-															id: id,
-															name: name,
-															quantity: quantity,
-															barcode: barcode,
-															image: image,
-															onGoBack: (
-																barcode: string
-															) => {
-																if (
-																	barcode !==
-																	null
-																)
-																	removeProduct(
-																		barcode
-																	);
-															},
-														}
-													)
-												}
-											>
-												<Row style={styles.test}>
-													<Card
-														style={styles.product}
-													>
-														<Body>
-															<H3>{name}</H3>
-															<Thumbnail
-																source={{
-																	uri: image,
-																}}
-																style={{
-																	width: 150,
-																	height: 150,
-																}}
-															/>
-															<Text>
-																Quantity:{" "}
-																{quantity}
-															</Text>
-														</Body>
-													</Card>
-												</Row>
-											</TouchableOpacity>
-										) : null;
-									}
-							  )}
-					</Col>
-				</Grid>
+								</Col>
+							</Grid>
+						</TouchableOpacity>
+
+					))
+				}
+
+				<Button style={styles.create} onPress={() =>
+					navigation.navigate("NewProduct", {
+						onGoBack: (data: Object) => {
+							console.log("Adding product callback");
+							if (data !== null) addProduct(data);
+						},
+					})
+				}><Text style={styles.createText}>New product</Text></Button>
 			</Container>
 		</ScrollView>
 	);
@@ -262,8 +191,25 @@ const InventoryScreen = ({
 export default InventoryScreen;
 
 const styles = StyleSheet.create({
+	grid: {
+		flex: 1,
+		paddingBottom: 4,
+		marginBottom: 4,
+		borderBottomColor: "grey",
+		borderBottomWidth: 0.5
+	},
+	gridImage: {
+		flex: 0.3
+	},
+	gridText: {
+		flex: 0.7,
+		paddingTop: 16,
+	},
 	container: {
-		backgroundColor: "#eee",
+		backgroundColor: "#00000000",
+		paddingTop: 8,
+		height: "100%",
+		padding: 8
 	},
 	test: {
 		height: 230,
@@ -275,4 +221,25 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f7f7f7",
 		padding: 8,
 	},
+	barcode: {
+		color: "#878787"
+	},
+	stock: {
+		color: "#454545"
+	},
+	create: {
+		backgroundColor: "#0064B0",
+		width: "90%",
+		margin: "5%",
+		marginTop: 48,
+	},
+	createText: {
+		width: "100%",
+		textAlign: "center"
+	},
+	noProducts: {
+		marginTop: 32,
+		width: "100%",
+		textAlign: "center"
+	}
 });

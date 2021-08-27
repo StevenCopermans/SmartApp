@@ -40,7 +40,7 @@ const NewProductScreen = ({
 	route: any;
 }) => {
 	const [barcode, setBarcode] = useState<string>();
-	const [name, setName] = useState<string>();
+	const [name, setName] = useState<string>("poep");
 	const [quantity, setQuantity] = useState(0);
 	const [image, setImage] = useState<string>();
 	const [forceUpdate, forceUpdateId] = useForceUpdate();
@@ -71,17 +71,19 @@ const NewProductScreen = ({
 	};
 
 	React.useLayoutEffect(() => {
+		console.log(name);
 		navigation.setOptions({
 			headerRight: () => (
 				<TouchableOpacity onPress={() => validateData()}>
-					<Icon name="checkmark-outline" />
+					<Icon name="checkmark-outline" style={{ color: "#fff", marginRight: 16 }} />
 				</TouchableOpacity>
 			),
 		});
-	}, [navigation]);
+	}, [navigation, image, name, barcode, quantity]);
 
 	const validateData = async () => {
-		console.log(image);
+		console.log(name);
+		console.log(barcode);
 
 		if (
 			name !== "" &&
@@ -98,7 +100,7 @@ const NewProductScreen = ({
 				await FileSystem.makeDirectoryAsync(
 					FileSystem.documentDirectory + "images/"
 				);
-			} catch (evt) {}
+			} catch (evt) { }
 			await FileSystem.moveAsync({
 				from: image,
 				to: FileSystem.documentDirectory + "images/" + barcode + ".png",
@@ -148,6 +150,8 @@ const NewProductScreen = ({
 
 		console.log(result);
 		if (!result.cancelled) {
+			console.log("Saving image");
+			console.log(result.uri);
 			setImage(result.uri);
 		}
 	};
@@ -175,42 +179,56 @@ const NewProductScreen = ({
 				)}
 
 				<H3 style={styles.title}>Product name</H3>
-				<Item regular style={styles.inputContainer}>
+				<Container style={styles.inputContainer}>
 					<Input
 						placeholder="Product name"
 						onChangeText={(value) => setName(value)}
 					/>
-				</Item>
+				</Container>
 
 				<H3 style={styles.title}>Image</H3>
-				<Container style={styles.buttonContainer}>
-					<Button onPress={pickCamera}>
-						<Icon name="camera" />
-					</Button>
-					<Button onPress={pickImage}>
-						<Icon name="image" />
-					</Button>
+				<Container style={styles.imageContainer}>
+					<Container style={styles.buttonContainer}>
+						<Button onPress={pickCamera}>
+							<Icon name="camera" />
+						</Button>
+						<Button onPress={pickImage}>
+							<Icon name="image" />
+						</Button>
+					</Container>
+					{image && (
+						<Thumbnail
+							source={{ uri: image }}
+							style={{ width: 200, height: 200, borderRadius: 0 }}
+						/>
+					)}
+					{!image && (
+						<Item style={{ width: 200, height: 200, backgroundColor: "#d7d7d7" }}>
+						</Item>
+					)}
 				</Container>
-				{image && (
-					<Thumbnail
-						source={{ uri: image }}
-						style={{ width: 200, height: 200 }}
-					/>
-				)}
 
 				<H3 style={styles.title}>Available quantity</H3>
-				<Item regular style={styles.inputContainer}>
+				<Container style={styles.inputContainer}>
 					<Input
 						placeholder="Quantity"
 						keyboardType="numeric"
 						value={quantity.toString()}
 						onChangeText={(value) => setQuantity(Number(value))}
 					/>
-				</Item>
+				</Container>
 
 				<H3 style={styles.title}>Barcode</H3>
 				<Container style={styles.barcodeContainer}>
-					<Button
+
+					<Container style={styles.inputContainer}>
+						<Input
+							placeholder="Barcode"
+							value={barcode}
+							onChangeText={(value) => setBarcode(value)}
+						/>
+					</Container>
+					<Button style={{ marginLeft: 8 }}
 						onPress={() =>
 							navigation.navigate("Camera", {
 								onGoBack: (data: string) => {
@@ -223,14 +241,12 @@ const NewProductScreen = ({
 					>
 						<Icon name="camera" />
 					</Button>
-					<Item regular style={styles.inputContainer}>
-						<Input
-							placeholder="Barcode"
-							value={barcode}
-							onChangeText={(value) => setBarcode(value)}
-						/>
-					</Item>
+
+
 				</Container>
+				<Button style={styles.create} onPress={() => validateData()}>
+					<Text style={styles.createText}>Create product</Text>
+				</Button>
 			</Content>
 		</ScrollView>
 	);
@@ -245,24 +261,37 @@ export default NewProductScreen;
 
 const styles = StyleSheet.create({
 	backgroundColor: {
-		backgroundColor: "#4267B2",
+		backgroundColor: "#0064B0",
 	},
 	container: {
 		width: "100%",
+		padding: 8
 	},
 	content: {
 		width: "100%",
 		padding: 8,
 	},
 	title: {
-		marginTop: 16,
+		marginTop: 32,
+		fontWeight: "bold",
+		marginBottom: 4
 	},
 	buttonContainer: {
 		display: "flex",
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		height: "100%",
+		borderWidth: 0,
+		backgroundColor: "#00000000",
+		marginLeft: 48
+	},
+	imageContainer: {
+		display: "flex",
 		flexDirection: "row",
 		justifyContent: "space-between",
-		width: "35%",
-		height: 52,
+		width: "100%",
+		height: 200,
+		backgroundColor: "#00000000"
 	},
 	barcodeContainer: {
 		display: "flex",
@@ -272,5 +301,18 @@ const styles = StyleSheet.create({
 	inputContainer: {
 		backgroundColor: "#f6f6f6",
 		width: "100%",
+		height: "auto",
+		borderWidth: 1,
+		borderColor: "#d7d7d7",
+		margin: 0,
+	},
+	create: {
+		backgroundColor: "#0064B0",
+		width: "100%",
+		marginTop: 48,
+	},
+	createText: {
+		width: "100%",
+		textAlign: "center"
 	},
 });
